@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>推广之手</title>
+<style>
+  :root {
+    --bg: #e9ebee;
+    --blue: #1d9bf0;
+    --text: #0f1419;
+    --muted: #536471;
+    --line: #eff3f4;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  #fit { width: 390px; height: 844px; transform-origin: center; flex: none; }
+  .phone {
+    position: relative; width: 390px; height: 844px;
+    border-radius: 54px; background: #fff; overflow: hidden;
+    box-shadow: 0 0 0 11px #111, 0 0 0 13px #3a3a3c, 0 30px 80px rgba(0,0,0,.35);
+    color: var(--text);
+    user-select: none;
+  }
+  .screen { position: absolute; inset: 0; }
+
+  /* status bar */
+  .status { height: 47px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 30px 4px 34px; font-weight: 600; font-size: 16px; }
+  .status .right { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+  .island { position: absolute; top: 11px; left: 50%; width: 120px; height: 34px; margin-left: -60px; background: #000; border-radius: 20px; }
+
+  /* header */
+  .head { height: 52px; display: flex; align-items: center; padding: 0 12px 0 10px; }
+  .cancel { font-size: 17px; padding: 6px; }
+  .promote { margin-left: auto; margin-right: 22px; font-size: 15px; font-weight: 600; color: var(--muted); padding: 8px 6px; border-radius: 8px; position: relative; }
+  .post { background: var(--blue); color: #fff; font-weight: 700; font-size: 15px; border-radius: 999px; padding: 8px 18px; }
+
+  /* compose */
+  .compose { display: flex; padding: 6px 12px 0 10px; gap: 8px; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; flex: none; background: linear-gradient(135deg, #ffd29d, #ff8a65); display: grid; place-items: center; font-size: 20px; }
+  .body { flex: 1; min-width: 0; }
+  .audience { display: inline-flex; align-items: center; gap: 4px; border: 1px solid #cfd9de; color: var(--blue); font-weight: 700; font-size: 13px; border-radius: 999px; padding: 4px 12px; }
+  .text { font-size: 17px; line-height: 1.45; margin: 10px 2px 12px; min-height: 50px; white-space: pre-wrap; }
+  .caret { display: inline-block; width: 2px; height: 20px; background: var(--blue); vertical-align: -4px; margin-left: 1px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .quote { border: 1px solid #cfd9de; border-radius: 16px; overflow: hidden; }
+  .quote .meta { display: flex; align-items: center; gap: 6px; padding: 10px 12px 2px; font-size: 14px; }
+  .quote .meta b { font-weight: 700; }
+  .quote .meta span { color: var(--muted); }
+  .quote .mini { width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #8ec5fc, #3f6ad8); }
+  .quote p { margin: 2px 12px 10px; font-size: 14px; line-height: 1.4; }
+  .quote .img { height: 120px; background:
+      radial-gradient(circle at 75% 80%, #6bb8a5 0 22%, transparent 23%),
+      linear-gradient(160deg, #23406b, #4b7cb3 55%, #a9cbe7); }
+
+  /* toolbar */
+  .undo { position: absolute; left: 0; right: 0; top: 452px; border-top: 1px solid var(--line); height: 54px; display: flex; justify-content: flex-end; gap: 28px; padding: 14px 24px 0; color: var(--blue); }
+  .tools { position: absolute; left: 0; right: 0; top: 506px; border-top: 1px solid var(--line); height: 50px; display: flex; align-items: center; gap: 26px; padding: 0 18px; color: var(--blue); }
+  .tools .sep { width: 1px; height: 26px; background: #cfd9de; margin-left: auto; }
+  .tools .plus { width: 24px; height: 24px; border-radius: 50%; background: var(--blue); color: #fff; display: grid; place-items: center; font-weight: 700; }
+
+  /* keyboard */
+  .kbd { position: absolute; left: 0; right: 0; bottom: 0; top: 560px; background: #d1d4d9; border-radius: 22px 22px 0 0; padding: 6px 3px 0; }
+  .cands { display: flex; justify-content: space-around; font-size: 18px; height: 38px; align-items: center; color: #111; }
+  .row { display: flex; justify-content: center; gap: 6px; margin-top: 10px; }
+  .k { background: #fff; border-radius: 6px; height: 42px; flex: 0 0 32px; display: grid; place-items: center; font-size: 22px; box-shadow: 0 1px 0 #898a8d; }
+  .k.dark { background: #abb0ba; flex-basis: 42px; font-size: 15px; }
+  .k.space { flex: 1 1 auto; }
+  .k.ret { flex-basis: 88px; }
+  .k.press { background: #abb0ba; }
+
+  /* hands */
+  .hand { position: absolute; left: 0; top: 0; pointer-events: none; will-change: transform; z-index: 20; visibility: hidden; }
+  .hand img { position: absolute; display: block; -webkit-user-drag: none; filter: drop-shadow(0 12px 18px rgba(0,0,0,.28)); }
+
+  .boom { position: absolute; z-index: 30; pointer-events: none; left: 0; top: 0; opacity: 0; }
+  .boom .burst { position: absolute; width: 150px; height: 150px; left: -75px; top: -75px; }
+  .boom .word { position: absolute; left: -60px; top: -105px; width: 120px; text-align: center; font: 900 46px/1 "PingFang SC", sans-serif; color: #ffd400; -webkit-text-stroke: 3px #111; paint-order: stroke fill; transform: rotate(-12deg); }
+  .flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 25; }
+
+  .controls { margin-top: 28px; display: flex; gap: 10px; }
+  .controls button { font: 600 15px/1 -apple-system, "PingFang SC", sans-serif; border: 0; border-radius: 999px; padding: 12px 22px; background: #0f1419; color: #fff; cursor: pointer; transition: transform 120ms cubic-bezier(.23,1,.32,1), opacity 150ms ease; }
+  .controls button:active { transform: scale(.97); }
+  .controls button:disabled { opacity: .4; cursor: default; }
+</style>
+</head>
+<body>
+<div id="fit">
+  <div class="phone" id="phone">
+    <div class="screen" id="screen">
+      <div class="island"></div>
+      <div class="status">
+        <span>15:37</span>
+        <span class="right">
+          <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+          4G
+          <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="#999"/><rect x="2" y="2" width="20" height="9" rx="2" fill="#34c759"/><rect x="24.5" y="4" width="2" height="5" rx="1" fill="#999"/></svg>
+        </span>
+      </div>
+      <div class="head">
+        <span class="cancel">取消</span>
+        <span class="promote" id="promote">推广</span>
+        <span class="post">发布</span>
+      </div>
+      <div class="compose">
+        <div class="avatar">🐰</div>
+        <div class="body">
+          <span class="audience">每个人
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 9l7 7 7-7"/></svg>
+          </span>
+          <div class="text"><span id="typed"></span><span class="caret"></span></div>
+          <div class="quote">
+            <div class="meta"><div class="mini"></div><b>Agent Lab</b><span>@agentlab · 2小时</span></div>
+            <p>让 computer use 在一台机器上跑了一整晚……</p>
+            <div class="img"></div>
+          </div>
+        </div>
+      </div>
+      <div class="undo">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#cfd9de" stroke-width="2" stroke-linecap="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 000 12h3"/></svg>
+      </div>
+      <div class="tools">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="3"/><text x="12" y="15.5" text-anchor="middle" font-size="7" font-weight="700" fill="currentColor" stroke="none">GIF</text></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="7" r="2.5"/><circle cx="6" cy="17" r="2.5"/><path d="M11 7h10M11 17h10"/></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-6.5 7-12a7 7 0 00-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#cfd9de" stroke-width="2.4"><circle cx="12" cy="12" r="9"/></svg>
+        <span class="sep"></span>
+        <span class="plus">+</span>
+      </div>
+      <div class="kbd" id="kbd"></div>
+
+      <div class="flash" id="flash"></div>
+    </div>
+
+    <!-- 西装手：wrapper 原点 = 指尖 -->
+    <div class="hand" id="suit"><img src="assets/hand-suit.webp" alt=""></div>
+    <!-- 扇巴掌的手：wrapper 原点 = 掌心 -->
+    <div class="hand" id="slap"><img src="assets/hand-slap.webp" alt=""></div>
+
+    <div class="boom" id="boom">
+      <svg class="burst" viewBox="-75 -75 150 150"><polygon id="burstPoly" fill="#fff" stroke="#111" stroke-width="3" stroke-linejoin="round"/></svg>
+      <div class="word">啪！</div>
+    </div>
+  </div>
+</div>
+<div class="controls">
+  <button id="replay" disabled>重播</button>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const OUT = 'cubic-bezier(.23, 1, .32, 1)';
+const INOUT = 'cubic-bezier(.77, 0, .175, 1)';
+
+/* ---- fit phone to viewport ---- */
+function fit() {
+  const s = Math.min(1, (innerHeight - 110) / 870, (innerWidth - 32) / 416);
+  $('#fit').style.transform = `scale(${s})`;
+  $('#fit').style.margin = `${(844 * (s - 1)) / 2}px ${(390 * (s - 1)) / 2}px`;
+}
+addEventListener('resize', fit); fit();
+
+/* ---- keyboard ---- */
+const kbd = $('#kbd');
+kbd.innerHTML = `<div class="cands">${['。','我','你','这','那','一','不','现在','没'].map(c => `<span>${c}</span>`).join('')}</div>`;
+const rows = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
+const keyEls = {};
+rows.forEach((r, i) => {
+  const row = document.createElement('div'); row.className = 'row';
+  if (i === 2) row.insertAdjacentHTML('beforeend', '<div class="k dark">⇧</div>');
+  for (const ch of r) {
+    const k = document.createElement('div'); k.className = 'k'; k.textContent = ch;
+    keyEls[ch] = k; row.appendChild(k);
+  }
+  if (i === 2) row.insertAdjacentHTML('beforeend', '<div class="k dark">⌫</div>');
+  kbd.appendChild(row);
+});
+kbd.insertAdjacentHTML('beforeend', '<div class="row"><div class="k dark">123</div><div class="k dark">☺</div><div class="k space"></div><div class="k dark ret">↵</div></div>');
+
+/* ---- burst polygon ---- */
+(() => {
+  const pts = [];
+  for (let i = 0; i < 24; i++) {
+    const a = (i / 24) * Math.PI * 2, r = i % 2 ? 34 : 70 - (i % 4) * 6;
+    pts.push(`${(Math.cos(a) * r).toFixed(1)},${(Math.sin(a) * r).toFixed(1)}`);
+  }
+  $('#burstPoly').setAttribute('points', pts.join(' '));
+})();
+
+/* ---- hand geometry (image trimmed to opaque bbox) ---- */
+// suit: 1494x1004, fingertip at (1490, 18)
+const SUIT_W = 460, SUIT_H = SUIT_W * 1004 / 1494;
+const suitImg = $('#suit img');
+Object.assign(suitImg.style, { width: SUIT_W + 'px', left: -SUIT_W * 1490 / 1494 + 'px', top: -SUIT_H * 18 / 1004 + 'px' });
+// slap: 1958x771, palm centre ~ (450, 430)
+const SLAP_W = 330, SLAP_H = SLAP_W * 771 / 1958;
+const slapImg = $('#slap img');
+Object.assign(slapImg.style, { width: SLAP_W + 'px', left: -SLAP_W * 450 / 1958 + 'px', top: -SLAP_H * 430 / 771 + 'px' });
+
+const suit = $('#suit'), slap = $('#slap');
+const TIP = { x: 0, y: 0 };      // where the finger points (推广)
+const HIT = { x: 0, y: 0 };      // where the slap lands (back of the suit hand)
+function measure() {
+  const p = $('#phone').getBoundingClientRect();
+  const r = $('#promote').getBoundingClientRect();
+  const s = p.width / 390;
+  TIP.x = (r.left + r.width / 2 - p.left) / s + 2;
+  TIP.y = (r.top + r.height - p.top) / s - 6;
+  HIT.x = TIP.x - 40; HIT.y = TIP.y + 175;
+}
+const at = (pt, dx = 0, dy = 0, rot = 0, sc = 1) =>
+  `translate(${pt.x + dx}px, ${pt.y + dy}px) rotate(${rot}deg) scale(${sc})`;
+const SUIT_ROT = -29;
+
+/* ---- the show ---- */
+const TEXT = '多 agent 并行现状：我的 mac 不只是弹窗，还经常抢光标……';
+let run = 0;
+
+async function play() {
+  const id = ++run;
+  const alive = () => id === run;
+  $('#replay').disabled = true;
+  document.getAnimations().forEach(a => { if (a.effect?.target?.closest?.('#phone')) a.cancel(); });
+  suit.style.visibility = slap.style.visibility = 'hidden';
+  $('#typed').textContent = '';
+  measure();
+
+  // 1. type
+  await sleep(500);
+  for (const ch of TEXT) {
+    if (!alive()) return;
+    $('#typed').textContent += ch;
+    const k = keyEls[ch.toLowerCase()] || keyEls[rows[0][Math.floor(Math.random() * 10)]];
+    k.classList.add('press'); setTimeout(() => k.classList.remove('press'), 90);
+    await sleep(ch === '…' ? 160 : 55 + Math.random() * 60);
+  }
+  await sleep(450);
+  if (!alive()) return;
+
+  // 2. the promo hand creeps in from bottom-left and points at 推广
+  suit.style.visibility = 'visible';
+  await suit.animate([
+    { transform: at(TIP, -360, 560, SUIT_ROT - 8) },
+    { transform: at(TIP, 0, 0, SUIT_ROT) }
+  ], { duration: 900, easing: OUT, fill: 'forwards' }).finished;
+  if (!alive()) return;
+
+  // insistent tap-tap-tap
+  const promoteGlow = $('#promote').animate([
+    { background: 'transparent', color: '#536471' },
+    { background: 'rgba(29,155,240,.14)', color: '#1d9bf0' },
+    { background: 'transparent', color: '#536471' }
+  ], { duration: 380, iterations: 3, easing: 'ease' });
+  for (let i = 0; i < 3; i++) {
+    await suit.animate([
+      { transform: at(TIP, 0, 0, SUIT_ROT) },
+      { transform: at(TIP, -6, 10, SUIT_ROT, .985), offset: .4 },
+      { transform: at(TIP, 0, 0, SUIT_ROT) }
+    ], { duration: 380, easing: INOUT }).finished;
+    if (!alive()) return;
+  }
+  promoteGlow.cancel();
+  await sleep(250);
+  if (!alive()) return;
+
+  // 3. wind-up: the other hand slides in from the right, pauses, then swings
+  slap.style.visibility = 'visible';
+  await slap.animate([
+    { transform: at(HIT, 420, -40, 18) },
+    { transform: at(HIT, 150, -30, 14) }
+  ], { duration: 380, easing: OUT, fill: 'forwards' }).finished;
+  await sleep(220);
+  if (!alive()) return;
+  await slap.animate([
+    { transform: at(HIT, 150, -30, 14) },
+    { transform: at(HIT, 190, -40, 20) }       // pull back
+  ], { duration: 160, easing: OUT, fill: 'forwards' }).finished;
+  if (!alive()) return;
+  await slap.animate([
+    { transform: at(HIT, 190, -40, 20), filter: 'blur(0)' },
+    { transform: at(HIT, 0, 0, -6), filter: 'blur(1.5px)' }
+  ], { duration: 120, easing: 'cubic-bezier(.5,0,.9,.6)', fill: 'forwards' }).finished;
+  if (!alive()) return;
+
+  // 4. impact
+  const boom = $('#boom');
+  boom.style.transform = `translate(${HIT.x - 20}px, ${HIT.y - 10}px)`;
+  boom.animate([
+    { opacity: 1, transform: `translate(${HIT.x - 20}px, ${HIT.y - 10}px) scale(.6)` },
+    { opacity: 1, transform: `translate(${HIT.x - 20}px, ${HIT.y - 10}px) scale(1.1)`, offset: .25 },
+    { opacity: 1, transform: `translate(${HIT.x - 20}px, ${HIT.y - 10}px) scale(1)`, offset: .7 },
+    { opacity: 0, transform: `translate(${HIT.x - 20}px, ${HIT.y - 10}px) scale(1.05)` }
+  ], { duration: 650, easing: OUT });
+  $('#flash').animate([{ opacity: .55 }, { opacity: 0 }], { duration: 160, easing: OUT });
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    $('#phone').animate([
+      { transform: 'translate(0,0)' }, { transform: 'translate(-9px,4px)' }, { transform: 'translate(7px,-3px)' },
+      { transform: 'translate(-4px,2px)' }, { transform: 'translate(2px,-1px)' }, { transform: 'translate(0,0)' }
+    ], { duration: 260, easing: 'linear' });
+  }
+
+  // suit hand gets knocked off-screen to the lower-left, spinning
+  suit.animate([
+    { transform: at(TIP, 0, 0, SUIT_ROT) },
+    { transform: at(TIP, -70, 50, SUIT_ROT - 18), offset: .15 },
+    { transform: at(TIP, -620, 760, SUIT_ROT - 55) }
+  ], { duration: 650, easing: 'cubic-bezier(.2,.8,.4,1)', fill: 'forwards' })
+    .finished.then(() => { if (alive()) suit.style.visibility = 'hidden'; });
+
+  // follow-through, hold, then leave
+  await slap.animate([
+    { transform: at(HIT, 0, 0, -6), filter: 'blur(1.5px)' },
+    { transform: at(HIT, -40, 8, -12), filter: 'blur(0)' }
+  ], { duration: 180, easing: OUT, fill: 'forwards' }).finished;
+  await sleep(550);
+  if (!alive()) return;
+  // a little "dusting off" wiggle
+  await slap.animate([
+    { transform: at(HIT, -40, 8, -12) },
+    { transform: at(HIT, -30, 4, -4) },
+    { transform: at(HIT, -40, 8, -12) }
+  ], { duration: 300, easing: INOUT, fill: 'forwards' }).finished;
+  if (!alive()) return;
+  await slap.animate([
+    { transform: at(HIT, -40, 8, -12) },
+    { transform: at(HIT, 440, -20, 10) }
+  ], { duration: 380, easing: OUT, fill: 'forwards' }).finished;
+  if (!alive()) return;
+  suit.style.visibility = slap.style.visibility = 'hidden';
+  $('#replay').disabled = false;
+}
+
+$('#replay').addEventListener('click', play);
+Promise.all([...document.images].map(i => i.decode().catch(() => {}))).then(play);
+</script>
+</body>
+</html>
